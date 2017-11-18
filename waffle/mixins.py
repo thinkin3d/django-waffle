@@ -5,66 +5,66 @@ from django.http import Http404
 from waffle import switch_is_active, flag_is_active, sample_is_active
 
 
-class BaseWaffleMixin(object):
+class BaseFeatureMixin(object):
 
-    def validate_waffle(self, waffle, func):
-        if waffle.startswith('!'):
-            active = not func(waffle[1:])
+    def validate_feature(self, feature, func):
+        if feature.startswith('!'):
+            active = not func(feature[1:])
         else:
-            active = func(waffle)
+            active = func(feature)
         return active
 
-    def invalid_waffle(self):
-        raise Http404('Inactive Waffle')
+    def invalid_feature(self):
+        raise Http404
 
 
-class WaffleFlagMixin(BaseWaffleMixin):
+class FeatureFlagMixin(BaseFeatureMixin):
     """
     Checks that as flag is active, or 404. Operates like the FBV decorator
-    waffle_flag
+    feature_flag
     """
 
-    waffle_flag = None
+    feature_flag = None
 
     def dispatch(self, request, *args, **kwargs):
         func = partial(flag_is_active, request)
-        active = self.validate_waffle(self.waffle_flag, func)
+        active = self.validate_feature(self.feature_flag, func)
 
         if not active:
-            return self.invalid_waffle()
+            return self.invalid_feature()
 
-        return super(WaffleFlagMixin, self).dispatch(request, *args, **kwargs)
+        return super(FeatureFlagMixin, self).dispatch(request, *args, **kwargs)
 
 
-class WaffleSampleMixin(BaseWaffleMixin):
+class FeatureSampleMixin(BaseFeatureMixin):
     """
     Checks that as switch is active, or 404. Operates like the FBV decorator
-    waffle_sample.
+    feature_sample.
     """
 
-    waffle_sample = None
+    feature_sample = None
 
     def dispatch(self, request, *args, **kwargs):
-        active = self.validate_waffle(self.waffle_sample, sample_is_active)
+        active = self.validate_feature(self.feature_sample, sample_is_active)
 
         if not active:
-            return self.invalid_waffle()
+            return self.invalid_feature()
 
-        return super(WaffleSampleMixin, self).dispatch(request, *args, **kwargs)
+        return super(FeatureSampleMixin, self).dispatch(request, *args, **kwargs)
 
 
-class WaffleSwitchMixin(BaseWaffleMixin):
+class FeatureSwitchMixin(BaseFeatureMixin):
     """
     Checks that as switch is active, or 404. Operates like the FBV decorator
-    waffle_switch.
+    feature_switch.
     """
 
-    waffle_switch = None
+    feature_switch = None
 
     def dispatch(self, request, *args, **kwargs):
-        active = self.validate_waffle(self.waffle_switch, switch_is_active)
+        active = self.validate_feature(self.feature_switch, switch_is_active)
 
         if not active:
-            return self.invalid_waffle()
+            return self.invalid_feature()
 
-        return super(WaffleSwitchMixin, self).dispatch(request, *args, **kwargs)
+        return super(FeatureSwitchMixin, self).dispatch(request, *args, **kwargs)
